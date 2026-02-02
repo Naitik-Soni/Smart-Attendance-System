@@ -1,6 +1,24 @@
 # Low level idea of the system
 
 ## Backend API system
+
+### Mental model
+```
+ENTRY POINTS
+   ↓
+Gateway
+   ↓
+Controllers
+   ↓
+Services (Business Logic)
+   ↓
+Clients (External Communication)
+   ↓
+External Systems
+```
+
+![Diagram](../../Images/LLD-Backend.png)
+
 ### 1️⃣ Backend API — Responsibility (LLD definition)
 What this system is responsible for
 - Single entry point for all external clients
@@ -84,3 +102,52 @@ Controllers do not:
 - call models
 - implement logic
 
+### 5️⃣ Application Services (Core Logic)
+🧍 User Service
+- Create/update users
+- Link user ↔ face data
+- Validate user lifecycle  
+
+🕒 Attendance Service
+- Apply attendance rules
+- Handle duplicate detection
+- Apply confidence thresholds
+- Decide mark / don’t mark  
+
+📷 Frame Ingestion Service
+- Accept images from UI/cameras
+- Normalize metadata
+- Forward frame to Face Recognition backend
+
+🎥 Camera Management Service
+- Register cameras
+- Camera health tracking
+- Detect camera down events
+
+📜 Audit & Logging Service
+- Record who did what and when
+- Security-critical
+
+### 6️⃣ Integration Layer (Very Important)
+Backend API never talks directly to internals.  
+Instead, it uses clients/adapters.  
+
+🔗 Face Recognition Backend Client
+- Sends image/frame
+- Receives:
+    - person_id / unknown
+    - confidence score
+
+🗄️ Storage Client
+- SQL writes (users, attendance, audits)
+- No business logic here
+
+🔔 Event Client
+- Emits:
+    - unknown face
+    - camera down
+    - system anomaly
+- This layer makes services:
+    - testable
+    - replaceable
+    - scalable
