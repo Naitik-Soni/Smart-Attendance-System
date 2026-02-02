@@ -16,7 +16,7 @@
 
 2️⃣ Backend API (FastAPI)
 - The gatekeeper
-- Receives images/frames
+- Receives images or handles RTSP video frames
 - Validates requests
 - Handles authentication
 - Routes work to internal services
