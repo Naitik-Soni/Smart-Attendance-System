@@ -10,6 +10,9 @@
 
 ---
 
+![Diagram](../../Images/storage_lld_diagram.png)
+
+
 ## 🧱 Final Storage Stack (Frozen)
 
 | Data Type          | Storage                      |
