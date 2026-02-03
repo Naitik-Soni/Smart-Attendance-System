@@ -1,6 +1,4 @@
-# Low level idea of the system
-
-## Backend API system
+# Backend API system
 
 ### Mental model
 ```

@@ -1,4 +1,7 @@
 # Face recognition service
+
+![Diagram](../../Images/LLD-face-recognition.png)
+
 ### 1️⃣ Face Recognition Service – Core Responsibility
 
 #### Input
