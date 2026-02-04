@@ -1,102 +1,298 @@
-## API's for communication
+# APIs for Communication
 
-### (1) Authorization apis
-> 1. **Task:** Authorize the users based on credentials received  
-**Authority:** `Anyone`  
-**Method:** POST  
-**API:** v1/auth/login  
-> Data model:    
->       ```json
->       {
->           "user_id": '<unique id of the user>',
->           "password": '<password assigned to the user>'
->       }
->       ```
+## 1. Authorization APIs (`/v1/auth`)
 
-### (2) Admin apis
-> 1. **Task:** Configure organization details  
-**Authority:** `Admin`  
-**Method:** POST  
-**API:** v1/admin/config-org
+### 1.1 Login
 
-> 2. **Task:** Configure system and camera details  
-**Authority:** `Admin`  
-**Method:** POST  
-**API:** v1/admin/system-config  
+* **Task:** Authorize users based on credentials
+* **Authority:** `Anyone`
+* **Method:** `POST`
+* **Endpoint:** `/v1/auth/login`
 
-> 3. **Task:** System health checkup  
-**Authority:** `Admin`  
-**Method:** GET  
-**API:** v1/admin/system-health  
+**Request body**
 
-> 4. **Task:** Add Operator  
-**Authority:** `Admin`  
-**Method:** POST  
-**API:** v1/admin/add-operator
+```json
+{
+  "user_id": "<unique id of the user>",
+  "password": "<password assigned to the user>"
+}
+```
 
-> 5. **Task:** Update operator details  
-**Authority:** `Admin`  
-**Method:** PATCH  
-**API:** v1/admin/update-operator/{id}
+---
 
-> 6. **Task:** View operator details  
-**Authority:** `Admin`  
-**Method:** GET  
-**API:** v1/admin/view-operator/{id}
+## 2. Admin APIs (`/v1/admin`)
 
-> 7. **Task:** Delete operator  
-**Authority:** `Admin`  
-**Method:** DELETE  
-**API:** v1/admin/delete-operator/{id} 
+### 2.1 Configure Organization Details
 
-> 8. **Task:** Get operators list  
-**Authority:** `Admin`    
-**Method:** GET  
-**API:** v1/admin/get-operators
+* **Authority:** `Admin`
+* **Method:** `POST` or `PATCH`
+* **Endpoint:** `/v1/admin/config-org`
 
-### (3) Operators apis
-> 1. **Task:** Add user  
-**Authority:** `Admin` `Operator`  
-**Method:** POST  
-**API:** v1/ops/add-user
+**Request body:**
+```json
+{
+  "org": {
+    "org_name": "Acme Corp",
+    "legal_name": "Acme Corp pvt. ltd.",
+    "type": "enterprise"
+  },
 
-> 2. **Task:** Get users list  
-**Authority:** `Admin` `Operator`   
-**Method:** GET  
-**API:** v1/ops/get-users
+  "security": {
+    "session_timeout_minutes": 30
+  },
 
-> 3. **Task:** Get operators list  
-**Authority:** `Admin`  `Operator`  
-**Method:** PATCH  
-**API:** v1/ops/update-user/{id}
+  "face_registration": {
+    "max_faces_per_user": 5,
+    "min_faces_per_user": 3,
+    "min_image_quality_score": 0.75,
+    "false_negative_priority": true
+  },
 
-> 4. **Task:** Get operators list  
-**Authority:** `Admin`  `Operator`  
-**Method:** DELETE  
-**API:** v1/ops/delete-user/{id}
+  "data_policy": {
+    "face_data_retention_days": 90,
+    "log_retention_days": 180
+  },
 
-> 5. **Task:** Get User  
-**Authority:** `Admin`  `Operator`  
-**Method:** GET  
-**API:** v1/ops/get-user/{id}
+  "limits": {
+    "api_rate_limit_per_min": 1000
+  }
+}
+```
 
-> 6. **Task:** Upload image for attendance processing
-**Authority:** `Admin`  `Operator`  
-**Method:** POST  
-**API:** v1/ops/upload-image
+---
 
-> 7. **Task:** Mark manual attendance   
-**Authority:** `Admin`  `Operator`  
-**Method:** POST  
-**API:** v1/ops/mark-attendance
+### 2.2 Configure System & Camera Details
 
-> 8. **Task:** Get audit logs  
-**Authority:** `Admin`  `Operator`  
-**Method:** GET  
-**API:** v1/ops/get-logs
+* **Authority:** `Admin`
+* **Method:** `POST` or `PATCH`
+* **Endpoint:** `/v1/admin/system-config`
 
-### (4) User apis
-> 1. **Task:** View personal attendance  
-**Authority:** `User`  
-**Method:** GET  
-**API:** v1/user/get-attendance
+**Request body:**
+```json
+{
+  "cameras": {
+    "top_mounted": {
+      "enabled": true,
+      "devices": [
+        {
+          "enabled": true,
+          "camera_id": "cam_001",
+          "location": "headquarters",
+          "input": {
+            "type": "ip",
+            "source": "192.168.14.56"
+          }
+        }
+      ]
+    },
+
+    "wall_mounted": {
+      "enabled": true,
+      "devices": [
+        {
+          "enabled": true,
+          "camera_id": "cam_wall_001",
+          "location": "headquarters",
+          "input": {
+            "type": "rtsp",
+            "source": "rtsp://admin:password@192.168.1.100:554/live"
+          },
+          "face_to_image_ratio": 0.5
+        }
+      ]
+    }
+  },
+
+  "image_upload": {
+    "enabled": true,
+    "max_size_mb": 5,
+    "min_quality_score": 0.75
+  }
+}
+```
+
+---
+
+### 2.3 System Health Check
+
+* **Authority:** `Admin`
+* **Method:** `GET`
+* **Endpoint:** `/v1/admin/system-health`
+
+---
+
+### 2.4 Add Operator
+
+* **Authority:** `Admin`
+* **Method:** `POST`
+* **Endpoint:** `/v1/admin/operator`
+
+**Request body:**
+```json
+{
+  "operator_id": "op1",
+  "name": "John Doe",
+  "email": "johndoe@xyz.in",
+  "role": "operator",
+  "status": "active"
+}
+```
+
+---
+
+### 2.5 Update Operator Details
+
+* **Authority:** `Admin`
+* **Method:** `PATCH`
+* **Endpoint:** `/v1/admin/operator/{id}`
+
+**Request body:**
+```json
+{
+  "name": "John D",
+  "status": "inactive"
+}
+```
+
+---
+
+### 2.6 View Operator Details
+
+* **Authority:** `Admin`
+* **Method:** `GET`
+* **Endpoint:** `/v1/admin/operator/{id}`
+
+---
+
+### 2.7 Delete Operator
+
+* **Authority:** `Admin`
+* **Method:** `DELETE`
+* **Endpoint:** `/v1/admin/operator/{id}`
+
+---
+
+### 2.8 Get Operators List
+
+* **Authority:** `Admin`
+* **Method:** `GET`
+* **Endpoint:** `/v1/admin/operators`
+
+## 3. Operations APIs (`/v1/ops`)
+
+> Accessible by **Admin** and **Operator** roles
+
+---
+
+### 3.1 Add User
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `POST`
+* **Endpoint:** `/v1/ops/user`
+
+**Request body:**
+```json
+{
+  "user_id": "u123",
+  "name": "Jane Doe",
+  "email": "jane@xyz.in",
+  "role": "user",
+  "status": "active"
+}
+```
+
+---
+
+### 3.2 Get Users List
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `GET`
+* **Endpoint:** `/v1/ops/users`
+
+---
+
+### 3.3 Update User
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `PATCH`
+* **Endpoint:** `/v1/ops/user/{id}`
+
+**Request body:**
+```json
+{
+  "name": "John D",
+  "status": "inactive"
+}
+```
+
+---
+
+### 3.4 Delete User
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `DELETE`
+* **Endpoint:** `/v1/ops/user/{id}`
+
+---
+
+### 3.5 Get User Details
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `GET`
+* **Endpoint:** `/v1/ops/get-user/{id}`
+
+---
+
+### 3.6 Upload Image for Attendance Processing
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `POST`
+* **Endpoint:** `/v1/ops/upload-image`
+* **Content-Type:** `multipart/form-data`
+
+**Request body:**
+```json
+{
+    "image": FileUpload()
+}
+```
+
+---
+
+### 3.7 Mark Manual Attendance
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `POST`
+* **Endpoint:** `/v1/ops/manual_attendance`
+
+**Request body:**
+
+```json
+[
+    {
+        "user_id": "u123",
+        "attendance_type": "manual",
+        "status": "present",
+        "timestamp": "2026-02-04T09:15:00Z",
+        "reason": "Camera unavailable"
+    }
+]
+```
+
+---
+
+### 3.8 Get Audit Logs
+
+* **Authority:** `Admin`, `Operator`
+* **Method:** `GET`
+* **Endpoint:** `/v1/ops/get-logs`
+
+---
+
+## 4. User APIs (`/v1/user`)
+
+### 4.1 View Personal Attendance
+
+* **Authority:** `User`
+* **Method:** `GET`
+* **Endpoint:** `/v1/user/get-attendance`
