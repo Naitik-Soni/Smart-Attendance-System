@@ -5,6 +5,13 @@
 **Authority:** `Anyone`  
 **Method:** POST  
 **API:** v1/auth/login  
+> Data model:    
+>       ```json
+>       {
+>           "user_id": '<unique id of the user>',
+>           "password": '<password assigned to the user>'
+>       }
+>       ```
 
 ### (2) Admin apis
 > 1. **Task:** Configure organization details  
