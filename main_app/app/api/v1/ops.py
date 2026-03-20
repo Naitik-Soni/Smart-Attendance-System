@@ -9,7 +9,16 @@ from app.core.exceptions import AppException
 from app.core.responses import success_response
 from app.schemas.ops import ManualAttendanceItem
 from app.schemas.user import UserCreate, UserUpdate
-from app.services import attendance_service, audit_service, face_client, face_metadata_service, policy_service, user_service
+from app.services import (
+    attendance_service,
+    audit_service,
+    camera_service,
+    camera_worker_service,
+    face_client,
+    face_metadata_service,
+    policy_service,
+    user_service,
+)
 
 
 router = APIRouter(prefix="/ops", tags=["Operations"])
@@ -100,6 +109,16 @@ def get_user(user_id: str, current_user: dict = Depends(require_operator), db: S
         code="USER_FETCHED",
         message="User details retrieved",
         data=user.model_dump(),
+    )
+
+
+@router.get("/cameras")
+def list_cameras(current_user: dict = Depends(require_operator), db: Session = Depends(get_db)):
+    cameras = camera_service.list_cameras(db, current_user["organization_id"])
+    return success_response(
+        code="CAMERAS_LIST",
+        message="Cameras fetched successfully",
+        data={"cameras": cameras, "workers": camera_worker_service.all_worker_status()},
     )
 
 
