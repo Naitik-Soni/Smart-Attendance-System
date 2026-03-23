@@ -4,6 +4,9 @@ import { AppShell } from './components/AppShell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuthStore } from './store/auth';
 import { AdminPage } from './pages/AdminPage';
+import { AdminPoliciesPage } from './pages/AdminPoliciesPage';
+import { AdminCamerasPage } from './pages/AdminCamerasPage';
+import { AdminOperatorsPage } from './pages/AdminOperatorsPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { OperatorEnrollmentPage } from './pages/OperatorEnrollmentPage';
@@ -24,7 +27,11 @@ function App() {
         }
       >
         <Route index element={<RoleHomeRedirect />} />
-        <Route path='admin' element={<ProtectedRoute role='admin'><AdminPage /></ProtectedRoute>} />
+        <Route path='admin' element={<ProtectedRoute role='admin'><Navigate to='/admin/overview' replace /></ProtectedRoute>} />
+        <Route path='admin/overview' element={<ProtectedRoute role='admin'><AdminPage /></ProtectedRoute>} />
+        <Route path='admin/operators' element={<ProtectedRoute role='admin'><AdminOperatorsPage /></ProtectedRoute>} />
+        <Route path='admin/policies' element={<ProtectedRoute role='admin'><AdminPoliciesPage /></ProtectedRoute>} />
+        <Route path='admin/cameras' element={<ProtectedRoute role='admin'><AdminCamerasPage /></ProtectedRoute>} />
         <Route path='operations/users' element={<ProtectedRoute role='operator'><OperatorUsersPage /></ProtectedRoute>} />
         <Route path='operations/enrollment' element={<ProtectedRoute role='operator'><OperatorEnrollmentPage /></ProtectedRoute>} />
         <Route path='operations/scan' element={<ProtectedRoute role='operator'><OperatorScanPage /></ProtectedRoute>} />
@@ -39,7 +46,7 @@ function RoleHomeRedirect() {
   const role = useAuthStore((state) => state.user?.role ?? 'user');
 
   if (role === 'admin') {
-    return <Navigate to='/admin' replace />;
+    return <Navigate to='/admin/overview' replace />;
   }
 
   if (role === 'operator') {

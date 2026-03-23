@@ -1,7 +1,6 @@
-﻿import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '../store/auth';
-import { DemoGuide } from './DemoGuide';
 import { Toasts } from './Toasts';
 
 export function AppShell() {
@@ -23,7 +22,10 @@ export function AppShell() {
         </div>
 
         <nav className='nav'>
-          {user?.role === 'admin' ? <NavLink to='/admin'>Admin Overview</NavLink> : null}
+          {user?.role === 'admin' ? <NavLink to='/admin/overview'>Admin Overview</NavLink> : null}
+          {user?.role === 'admin' ? <NavLink to='/admin/operators'>Operator Admin</NavLink> : null}
+          {user?.role === 'admin' ? <NavLink to='/admin/policies'>Policy Config</NavLink> : null}
+          {user?.role === 'admin' ? <NavLink to='/admin/cameras'>Camera Config</NavLink> : null}
 
           {user?.role === 'operator' || user?.role === 'admin' ? <NavLink to='/operations/users'>User Management</NavLink> : null}
           {user?.role === 'operator' || user?.role === 'admin' ? <NavLink to='/operations/enrollment'>Face Enrollment</NavLink> : null}
@@ -48,7 +50,6 @@ export function AppShell() {
         </header>
 
         <main className='workspace-main'>
-          <DemoGuide role={user?.role ?? 'user'} />
           <Outlet />
         </main>
       </div>

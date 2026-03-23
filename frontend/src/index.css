@@ -16,9 +16,9 @@
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', 'Arial Nova', Arial, sans-serif;
+  font-family: 'IBM Plex Sans', 'Segoe UI', Tahoma, sans-serif;
   color: var(--text);
-  background: linear-gradient(180deg, #f7f9fc 0%, #eef3f9 100%);
+  background: #eef2f7;
 }
 
 h1, h2, h3, p { margin: 0; }
@@ -84,10 +84,10 @@ h1, h2, h3, p { margin: 0; }
 .sidebar-user span { color: #93c5fd; text-transform: capitalize; }
 
 .workspace {
-  padding: 20px 24px;
+  padding: 12px 14px;
   display: grid;
   grid-template-rows: auto 1fr;
-  gap: 16px;
+  gap: 8px;
 }
 
 .workspace-head {
@@ -95,7 +95,7 @@ h1, h2, h3, p { margin: 0; }
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: var(--shadow);
-  padding: 14px 16px;
+  padding: 10px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -112,7 +112,8 @@ h1, h2, h3, p { margin: 0; }
 .workspace-main,
 .stack-lg {
   display: grid;
-  gap: 14px;
+  gap: 8px;
+  align-content: start;
 }
 
 .guide-card {
@@ -135,7 +136,9 @@ h1, h2, h3, p { margin: 0; }
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  gap: 8px;
+  align-items: start;
+  grid-auto-rows: minmax(0, auto);
 }
 
 .metric-card {
@@ -143,16 +146,19 @@ h1, h2, h3, p { margin: 0; }
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: var(--shadow);
-  padding: 12px;
+  padding: 10px;
+  align-self: start;
+  min-height: 0;
 }
 
-.metric-card p { color: var(--muted); font-size: 0.85rem; }
-.metric-card h3 { margin-top: 8px; font-size: 1.4rem; }
+.metric-card p { color: var(--muted); font-size: 0.95rem; }
+.metric-card h3 { margin-top: 4px; font-size: 1.8rem; line-height: 1.1; }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 12px;
+  gap: 8px;
+  align-items: start;
 }
 
 .card {
@@ -160,9 +166,10 @@ h1, h2, h3, p { margin: 0; }
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: var(--shadow);
-  padding: 14px;
+  padding: 10px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  align-content: start;
 }
 
 .badge-row {
@@ -170,6 +177,10 @@ h1, h2, h3, p { margin: 0; }
   flex-wrap: wrap;
   gap: 8px;
   align-items: flex-start;
+}
+
+.tight-badge-row {
+  gap: 6px;
 }
 
 .status-badge {
@@ -186,20 +197,20 @@ h1, h2, h3, p { margin: 0; }
   color: #166534;
 }
 
-.stack { display: grid; gap: 10px; }
+.stack { display: grid; gap: 8px; }
 
 input, select, button {
   font: inherit;
   border-radius: 10px;
 }
 
-input, select {
+input, select, textarea {
   border: 1px solid var(--line);
   background: var(--surface-soft);
   padding: 10px 12px;
 }
 
-input:focus {
+input:focus, textarea:focus {
   border-color: #93c5fd;
   outline: 2px solid #dbeafe;
 }
@@ -242,7 +253,7 @@ table {
 
 th, td {
   text-align: left;
-  padding: 10px;
+  padding: 8px;
   border-bottom: 1px solid #edf2f7;
   font-size: 0.92rem;
 }
@@ -294,24 +305,38 @@ th {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 24px;
 }
 
 .auth-card {
-  width: min(420px, 100%);
+  width: min(460px, 100%);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: var(--shadow);
   padding: 22px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
+}
+
+.auth-card h2 {
+  margin-top: -2px;
+  letter-spacing: 0.01em;
+}
+
+.auth-card-plain {
+  width: min(420px, 100%);
 }
 
 .inline-btn {
   display: inline-block;
   text-align: center;
   text-decoration: none;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 8px;
 }
 
 @media (max-width: 1024px) {
@@ -328,8 +353,58 @@ th {
 }
 
 .form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  align-items: end;
+}
+
+.ops-compact {
+  gap: 4px;
+}
+
+.ops-compact .grid {
+  gap: 6px;
+  align-items: start;
+}
+
+.ops-compact .card {
+  padding: 6px;
+  gap: 4px;
+}
+
+.ops-compact .form-grid {
+  gap: 4px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.ops-compact .table-wrap {
+  border-radius: 6px;
+}
+
+.ops-compact input,
+.ops-compact select,
+.ops-compact button {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.policy-grid {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   align-items: end;
+}
+
+.policy-field {
+  display: grid;
+  gap: 4px;
+}
+
+.policy-label {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.policy-help {
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .camera-actions {

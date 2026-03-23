@@ -1,6 +1,6 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { type CameraConfig, type CameraWorker, enrollUpload, fetchOperatorCameras } from '../lib/api';
+import { enrollUpload } from '../lib/api';
 import { useToastStore } from '../store/toast';
 
 function dataUrlToFile(dataUrl: string, name: string): File {
@@ -30,12 +30,6 @@ function captureSquareFrame(video: HTMLVideoElement, canvas: HTMLCanvasElement):
   return canvas.toDataURL('image/jpeg', 0.92);
 }
 
-function statusFor(cam: CameraConfig, workers: CameraWorker[]): 'running' | 'idle' | 'disabled' {
-  if (cam.enabled === false) return 'disabled';
-  const worker = workers.find((w) => w.camera_id === cam.camera_id);
-  return worker?.running ? 'running' : 'idle';
-}
-
 export function OperatorEnrollmentPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -44,9 +38,6 @@ export function OperatorEnrollmentPage() {
   const [shots, setShots] = useState<string[]>([]);
   const [cameraReady, setCameraReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [cameras, setCameras] = useState<CameraConfig[]>([]);
-  const [workers, setWorkers] = useState<CameraWorker[]>([]);
-  const [cameraId, setCameraId] = useState('');
   const pushToast = useToastStore((s) => s.pushToast);
 
   useEffect(() => {
@@ -55,34 +46,9 @@ export function OperatorEnrollmentPage() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadCameras = async (silent = false) => {
-      try {
-        const payload = await fetchOperatorCameras();
-        if (cancelled) return;
-        setCameras(payload.cameras);
-        setWorkers(payload.workers);
-        if (!cameraId && payload.cameras.length > 0) {
-          setCameraId(payload.cameras[0].camera_id);
-        }
-      } catch {
-        if (!silent) pushToast('Could not load registered cameras. Manual ID available.', 'info');
-      }
-    };
-
-    void loadCameras();
-    const timer = setInterval(() => void loadCameras(true), 10000);
-
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [pushToast, cameraId]);
-
   const startCamera = async () => {
     try {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -90,9 +56,9 @@ export function OperatorEnrollmentPage() {
         await videoRef.current.play();
       }
       setCameraReady(true);
-      pushToast('Camera started.', 'success');
+      pushToast('Webcam started.', 'success');
     } catch {
-      pushToast('Unable to access camera.', 'error');
+      pushToast('Unable to access webcam.', 'error');
     }
   };
 
@@ -103,35 +69,28 @@ export function OperatorEnrollmentPage() {
       return;
     }
 
-    const v = videoRef.current;
-    const c = canvasRef.current;
-    const shot = captureSquareFrame(v, c);
+    const shot = captureSquareFrame(videoRef.current, canvasRef.current);
     if (!shot) {
       pushToast('Camera frame not ready yet.', 'error');
       return;
     }
     setShots((prev) => [...prev, shot]);
-    pushToast(`Shot ${shots.length + 1} captured from ${cameraId || 'camera'}.`, 'success');
+    pushToast(`Shot ${shots.length + 1} captured.`, 'success');
   };
 
   const removeShot = (idx: number) => setShots((prev) => prev.filter((_, i) => i !== idx));
 
   const canFinalize = useMemo(() => userId.trim().length > 0 && shots.length >= 3 && shots.length <= 5, [shots.length, userId]);
 
-  const selectedStatus = useMemo(() => {
-    const selected = cameras.find((c) => c.camera_id === cameraId);
-    return selected ? statusFor(selected, workers) : 'idle';
-  }, [cameraId, cameras, workers]);
-
   const finalizeEnrollment = async () => {
     if (!canFinalize) {
-      pushToast('Need employee id and 3-5 captured shots.', 'error');
+      pushToast('Need user id and 3-5 captured shots.', 'error');
       return;
     }
 
     setSubmitting(true);
     try {
-      const files = shots.map((s, idx) => dataUrlToFile(s, `${cameraId || 'cam'}_shot_${idx + 1}.jpg`));
+      const files = shots.map((s, idx) => dataUrlToFile(s, `webcam_shot_${idx + 1}.jpg`));
       await enrollUpload(userId.trim(), files);
       pushToast(`Enrollment finalized for ${userId}.`, 'success');
       setShots([]);
@@ -145,24 +104,11 @@ export function OperatorEnrollmentPage() {
   return (
     <section className='stack-lg'>
       <article className='card'>
-        <h2>Camera Enrollment</h2>
-        <p className='muted'>Capture employee images one-by-one from camera, then finalize enrollment.</p>
+        <h2>Face Enrollment</h2>
+        <p className='muted'>Use browser webcam to capture 3 to 5 images and finalize enrollment.</p>
         <div className='camera-actions'>
-          <input value={userId} onChange={(e) => setUserId(e.target.value)} placeholder='Employee ID (e.g., emp_101)' />
-
-          {cameras.length > 0 ? (
-            <select value={cameraId} onChange={(e) => setCameraId(e.target.value)}>
-              {cameras.map((cam) => (
-                <option key={cam.camera_id} value={cam.camera_id}>
-                  {cam.camera_id} ({cam.camera_type ?? 'camera'}{cam.location ? ` - ${cam.location}` : ''})
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input value={cameraId} onChange={(e) => setCameraId(e.target.value)} placeholder='Camera ID (manual fallback)' />
-          )}
-
-          <button className='ghost-btn' onClick={startCamera} type='button'>Start Camera</button>
+          <input value={userId} onChange={(e) => setUserId(e.target.value)} placeholder='User ID (example: emp_101)' />
+          <button className='ghost-btn' onClick={startCamera} type='button'>Start Webcam</button>
           <button className='primary-btn' disabled={!cameraReady} onClick={captureShot} type='button'>Capture Shot</button>
           <button className='primary-btn' disabled={!canFinalize || submitting} onClick={finalizeEnrollment} type='button'>
             {submitting ? 'Finalizing...' : 'Finalize Enrollment'}
@@ -170,26 +116,7 @@ export function OperatorEnrollmentPage() {
         </div>
         <video className='camera-video' ref={videoRef} muted playsInline />
         <canvas ref={canvasRef} style={{ display: 'none' }} />
-        <div className='camera-meta-row'>
-          <p className='muted'>Source camera: {cameraId || 'not selected'} | Captured shots: {shots.length} (required: 3 to 5)</p>
-          <span className={`status-badge ${selectedStatus}`}>status: {selectedStatus}</span>
-        </div>
-      </article>
-
-      <article className='card'>
-        <h2>Camera Status</h2>
-        <div className='camera-status-grid'>
-          {cameras.map((cam) => {
-            const st = statusFor(cam, workers);
-            return (
-              <div className='camera-status-item' key={cam.camera_id}>
-                <strong>{cam.camera_id}</strong>
-                <span className='muted'>{cam.location || cam.camera_type || 'camera'}</span>
-                <span className={`status-badge ${st}`}>{st}</span>
-              </div>
-            );
-          })}
-        </div>
+        <p className='muted'>Captured shots: {shots.length} (required: 3 to 5)</p>
       </article>
 
       <article className='card'>

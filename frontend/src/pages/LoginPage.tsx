@@ -10,8 +10,8 @@ export function LoginPage() {
   const location = useLocation();
   const setSession = useAuthStore((state) => state.setSession);
 
-  const [userId, setUserId] = useState('admin1');
-  const [password, setPassword] = useState('StrongPass123');
+  const [userId, setUserId] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,16 +38,29 @@ export function LoginPage() {
 
   return (
     <div className='auth-wrap'>
-      <form className='auth-card' onSubmit={onSubmit}>
-        <p className='eyebrow'>Smart Attendance</p>
-        <h1>Welcome back</h1>
-        <p className='muted'>Minimal demo frontend connected to your backend APIs.</p>
+      <form className='auth-card auth-card-plain' onSubmit={onSubmit}>
+        <p className='eyebrow'>Secure Login</p>
+        <h2>Attendance Management System</h2>
+        <p className='muted'>Enter your credentials to continue.</p>
 
         <label>User ID</label>
-        <input value={userId} onChange={(e) => setUserId(e.target.value)} placeholder='admin1' required />
+        <input
+          autoComplete='username'
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+          placeholder='User ID'
+          required
+        />
 
         <label>Password</label>
-        <input type='password' value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <input
+          autoComplete='current-password'
+          type='password'
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder='Password'
+          required
+        />
 
         {error ? <p className='error'>{error}</p> : null}
 
