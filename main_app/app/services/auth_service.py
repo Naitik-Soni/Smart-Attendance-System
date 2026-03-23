@@ -80,6 +80,15 @@ def _issue_tokens(user: User, role: str, display_name: str) -> dict:
     return data.model_dump()
 
 
+def requires_bootstrap(db: Session) -> bool:
+    existing_admin = (
+        db.query(User)
+        .filter(User.role_id == 1, User.is_deleted.is_(False))
+        .first()
+    )
+    return existing_admin is None
+
+
 def bootstrap_admin(
     db: Session,
     *,
@@ -140,6 +149,9 @@ def bootstrap_admin(
 
 
 def login(db: Session, *, user_id: str, password: str) -> dict:
+    if requires_bootstrap(db):
+        raise AppException(403, "ADMIN_SETUP_REQUIRED", "Initial admin setup is required")
+
     user = (
         db.query(User)
         .filter(User.username == user_id, User.is_deleted.is_(False), User.is_active.is_(True))

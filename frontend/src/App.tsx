@@ -12,12 +12,14 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { OperatorEnrollmentPage } from './pages/OperatorEnrollmentPage';
 import { OperatorScanPage } from './pages/OperatorScanPage';
 import { OperatorUsersPage } from './pages/OperatorUsersPage';
+import { SetupAdminPage } from './pages/SetupAdminPage';
 import { UserPage } from './pages/UserPage';
 
 function App() {
   return (
     <Routes>
       <Route path='/login' element={<LoginPage />} />
+      <Route path='/setup-admin' element={<SetupAdminPage />} />
       <Route
         path='/'
         element={

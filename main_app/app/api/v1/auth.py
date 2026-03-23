@@ -13,6 +13,15 @@ from app.services import auth_service
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
+@router.get("/bootstrap-status")
+def bootstrap_status(db: Session = Depends(get_db)):
+    return success_response(
+        code="BOOTSTRAP_STATUS",
+        message="Bootstrap status fetched successfully",
+        data={"requires_bootstrap": auth_service.requires_bootstrap(db)},
+    )
+
+
 @router.post("/login")
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     data = auth_service.login(db, user_id=payload.user_id, password=payload.password)

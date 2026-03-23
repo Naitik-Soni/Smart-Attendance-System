@@ -1,8 +1,8 @@
-﻿import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { loginRequest } from '../lib/api';
+import { fetchBootstrapStatus, loginRequest } from '../lib/api';
 import { useAuthStore } from '../store/auth';
 
 export function LoginPage() {
@@ -13,7 +13,24 @@ export function LoginPage() {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingSetup, setCheckingSetup] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const requiresBootstrap = await fetchBootstrapStatus();
+        if (requiresBootstrap) {
+          navigate('/setup-admin', { replace: true });
+          return;
+        }
+      } catch {
+        setError('Could not verify system setup status.');
+      } finally {
+        setCheckingSetup(false);
+      }
+    })();
+  }, [navigate]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,12 +81,10 @@ export function LoginPage() {
 
         {error ? <p className='error'>{error}</p> : null}
 
-        <button className='primary-btn' disabled={loading} type='submit'>
-          {loading ? 'Signing in...' : 'Sign in'}
+        <button className='primary-btn' disabled={loading || checkingSetup} type='submit'>
+          {loading || checkingSetup ? 'Please wait...' : 'Sign in'}
         </button>
       </form>
     </div>
   );
 }
-
-
