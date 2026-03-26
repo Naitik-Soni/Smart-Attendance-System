@@ -54,7 +54,8 @@ async def register_faces(user_id: str, files: list[UploadFile], policies: dict |
         upload_files.append(("images", (file.filename, content, file.content_type)))
 
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        # Enrollment can be slower on first model load / heavier image sets.
+        async with httpx.AsyncClient(timeout=120.0) as client:
             data = {"user_id": user_id}
             if policies:
                 data["policy_json"] = json.dumps(policies)

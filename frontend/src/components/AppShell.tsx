@@ -1,7 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '../store/auth';
-import { Toasts } from './Toasts';
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -53,7 +52,6 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
-      <Toasts />
     </div>
   );
 }

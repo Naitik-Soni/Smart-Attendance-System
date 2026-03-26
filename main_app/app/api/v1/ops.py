@@ -24,6 +24,19 @@ from app.services import (
 router = APIRouter(prefix="/ops", tags=["Operations"])
 
 
+def _upstream_error_text(result: dict) -> str:
+    err = result.get("error", {})
+    body = err.get("body", {})
+    if isinstance(body, dict):
+        code = body.get("code")
+        msg = body.get("message") or body.get("detail")
+        if code and msg:
+            return f"{code}: {msg}"
+        if msg:
+            return str(msg)
+    return "upstream error"
+
+
 @router.post("/user")
 def add_user(
     payload: UserCreate,
@@ -144,7 +157,8 @@ async def upload_image(
         result = await face_client.register_faces(user_id=user_id, files=register_images, policies=policies)
         if "error" in result:
             status_code = result["error"].get("status_code", 502)
-            raise AppException(status_code, "FACE_REGISTER_FAILED", "Face registration failed")
+            detail = _upstream_error_text(result)
+            raise AppException(status_code, "FACE_REGISTER_FAILED", f"Face registration failed: {detail}")
 
         persist = face_metadata_service.persist_registration_metadata(
             db,
@@ -173,7 +187,8 @@ async def upload_image(
     )
     if "error" in result:
         status_code = result["error"].get("status_code", 502)
-        raise AppException(status_code, "FACE_RECOGNIZE_FAILED", "Face recognition failed")
+        detail = _upstream_error_text(result)
+        raise AppException(status_code, "FACE_RECOGNIZE_FAILED", f"Face recognition failed: {detail}")
 
     persist = face_metadata_service.persist_recognition_metadata(
         db,

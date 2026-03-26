@@ -18,16 +18,27 @@ function captureSquareFrame(video: HTMLVideoElement, canvas: HTMLCanvasElement):
   const srcH = video.videoHeight;
   if (!srcW || !srcH) return null;
 
-  const size = Math.min(srcW, srcH);
-  const sx = Math.floor((srcW - size) / 2);
-  const sy = Math.floor((srcH - size) / 2);
-
   canvas.width = target;
   canvas.height = target;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  ctx.drawImage(video, sx, sy, size, size, 0, 0, target, target);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, target, target);
+  const scale = Math.min(target / srcW, target / srcH);
+  const drawW = Math.round(srcW * scale);
+  const drawH = Math.round(srcH * scale);
+  const dx = Math.floor((target - drawW) / 2);
+  const dy = Math.floor((target - drawH) / 2);
+  ctx.drawImage(video, 0, 0, srcW, srcH, dx, dy, drawW, drawH);
   return canvas.toDataURL('image/jpeg', 0.92);
+}
+
+function parseShotIndexFromMessage(message: string): number | null {
+  const m = message.match(/webcam_shot_(\d+)\.jpg/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return n - 1;
 }
 
 export function OperatorEnrollmentPage() {
@@ -94,8 +105,14 @@ export function OperatorEnrollmentPage() {
       await enrollUpload(userId.trim(), files);
       pushToast(`Enrollment finalized for ${userId}.`, 'success');
       setShots([]);
-    } catch {
-      pushToast('Enrollment finalize failed.', 'error');
+    } catch (err: any) {
+      const message = String(err?.response?.data?.message || 'Enrollment finalize failed.');
+      const shotIdx = parseShotIndexFromMessage(message);
+      if (shotIdx !== null && shotIdx >= 0 && shotIdx < shots.length) {
+        setShots((prev) => prev.filter((_, i) => i !== shotIdx));
+        pushToast(`Shot ${shotIdx + 1} removed automatically. Retake and finalize again.`, 'info');
+      }
+      pushToast(message, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -110,13 +127,14 @@ export function OperatorEnrollmentPage() {
           <input value={userId} onChange={(e) => setUserId(e.target.value)} placeholder='User ID (example: emp_101)' />
           <button className='ghost-btn' onClick={startCamera} type='button'>Start Webcam</button>
           <button className='primary-btn' disabled={!cameraReady} onClick={captureShot} type='button'>Capture Shot</button>
-          <button className='primary-btn' disabled={!canFinalize || submitting} onClick={finalizeEnrollment} type='button'>
+          <button className='primary-btn' disabled={submitting} onClick={finalizeEnrollment} type='button'>
             {submitting ? 'Finalizing...' : 'Finalize Enrollment'}
           </button>
         </div>
         <video className='camera-video' ref={videoRef} muted playsInline />
         <canvas ref={canvasRef} style={{ display: 'none' }} />
         <p className='muted'>Captured shots: {shots.length} (required: 3 to 5)</p>
+        {!canFinalize ? <p className='muted'>Finalize requires User ID and 3 to 5 valid face shots.</p> : null}
       </article>
 
       <article className='card'>

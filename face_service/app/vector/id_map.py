@@ -11,7 +11,26 @@ class IDMapStore:
         if not self.path.exists():
             self.data = {}
             return
-        self.data = json.loads(self.path.read_text(encoding="utf-8"))
+        raw = self.path.read_text(encoding="utf-8-sig").strip()
+        if not raw:
+            self.data = {}
+            self.save()
+            return
+
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            # Recover from partially deleted/corrupted state files.
+            self.data = {}
+            self.save()
+            return
+
+        if isinstance(parsed, dict):
+            self.data = parsed
+            return
+
+        self.data = {}
+        self.save()
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
