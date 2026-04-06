@@ -1,8 +1,14 @@
-﻿# Frontend (Demo UI)
+﻿# Frontend (React + Vite)
 
-Minimal React + Vite frontend for Smart Attendance backend.
+UI layer for Smart Attendance System.
 
-## Run
+## Purpose
+
+- role-based navigation and guarded routes
+- admin/operator/user workflows
+- API integration with `main_app`
+
+## Run (Development)
 
 ```powershell
 cd frontend
@@ -16,15 +22,23 @@ npm.cmd run dev
 npm.cmd run build
 ```
 
+## Preview Built App
+
+```powershell
+npm.cmd run preview
+```
+
 ## Environment
 
-Copy `.env.example` to `.env` and set:
+Set `frontend/.env`:
 
-- `VITE_API_BASE_URL` (default backend: `http://localhost:8000`)
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
 
-## Demo flows
+## Implemented UI Flows
 
-- Login with admin/operator/user credentials.
-- Admin dashboard: system health, policy snapshot, operators.
-- Operator dashboard: create user, enroll images, recognize image, view users and logs.
-- User dashboard: view attendance history.
+- login and bootstrap-admin redirect
+- admin pages: overview, operators, policies, cameras
+- operator pages: users, enrollment, scan
+- user page: attendance history

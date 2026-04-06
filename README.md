@@ -1,18 +1,19 @@
-# Smart Attendance System
+﻿# Smart Attendance System
 
-Production-ready attendance platform using face recognition.
+Production-ready attendance platform with face recognition, role-based workflows, and policy-driven configuration.
 
 ## Architecture
 
-- `main_app`: auth, roles, admin/ops APIs, attendance, policy and camera config
-- `face_service`: face enrollment and recognition
-- `frontend`: React UI for Admin/Operator/User roles
+- `main_app` (FastAPI): authentication, RBAC, admin/operator/user APIs, attendance, policies, camera config, audit logs
+- `face_service` (FastAPI): face enrollment, recognition, embeddings, unknown capture, retention purge
+- `frontend` (React + Vite): UI for Admin, Operator, and User roles
+- `storage`: local face images and embedding index artifacts
 
-## Ports
+## Default Ports
 
 - `main_app`: `http://localhost:8000`
 - `face_service`: `http://localhost:8001`
-- `frontend` (Vite): `http://localhost:5173` (or next free port)
+- `frontend`: `http://localhost:5173`
 
 ## Prerequisites
 
@@ -21,20 +22,18 @@ Production-ready attendance platform using face recognition.
 - PostgreSQL `14+`
 - Git
 
----
+## Setup
 
-## 1) Clone and open project
+### 1. Clone and enter repository
 
 ```bash
 git clone <your-repo-url>
 cd Smart-Attendance-System
 ```
 
----
+### 2. Create virtual environment and install backend dependencies
 
-## 2) Create virtual environment and install backend dependencies
-
-### Windows PowerShell
+Windows PowerShell:
 
 ```powershell
 python -m venv .sasenv
@@ -43,7 +42,7 @@ pip install -r .\main_app\requirements.txt
 pip install -r .\face_service\requirements.txt
 ```
 
-### Linux/macOS
+Linux/macOS:
 
 ```bash
 python3 -m venv .sasenv
@@ -52,11 +51,7 @@ pip install -r ./main_app/requirements.txt
 pip install -r ./face_service/requirements.txt
 ```
 
----
-
-## 3) Setup PostgreSQL database
-
-Create DB user and database:
+### 3. Prepare PostgreSQL
 
 ```sql
 CREATE USER sas_user WITH PASSWORD 'StrongDbPass123';
@@ -64,24 +59,25 @@ CREATE DATABASE smart_attendance OWNER sas_user;
 GRANT ALL PRIVILEGES ON DATABASE smart_attendance TO sas_user;
 ```
 
----
+### 4. Configure environment files
 
-## 4) Configure environment files
+Create env files from templates.
 
-### `main_app/.env`
+Windows:
 
-Copy from template:
-
-- Windows:
 ```powershell
 Copy-Item .\main_app\.env.example .\main_app\.env
-```
-- Linux/macOS:
-```bash
-cp ./main_app/.env.example ./main_app/.env
+Copy-Item .\face_service\.env.example .\face_service\.env
 ```
 
-Set at minimum:
+Linux/macOS:
+
+```bash
+cp ./main_app/.env.example ./main_app/.env
+cp ./face_service/.env.example ./face_service/.env
+```
+
+Set minimum required values in `main_app/.env`:
 
 ```env
 DATABASE_URL=postgresql://sas_user:StrongDbPass123@localhost:5432/smart_attendance
@@ -90,24 +86,9 @@ SECRET_KEY=replace-with-a-strong-random-secret
 FACE_SERVICE_URL=http://localhost:8001
 ```
 
-### `face_service/.env`
+### 5. Run database migrations
 
-Copy from template and adjust if needed:
-
-- Windows:
-```powershell
-Copy-Item .\face_service\.env.example .\face_service\.env
-```
-- Linux/macOS:
-```bash
-cp ./face_service/.env.example ./face_service/.env
-```
-
----
-
-## 5) Run DB migrations (mandatory)
-
-### Windows PowerShell
+Windows PowerShell:
 
 ```powershell
 cd .\main_app
@@ -115,13 +96,7 @@ $env:PYTHONPATH='.'
 ..\.sasenv\Scripts\python.exe -m alembic upgrade head
 ```
 
-If the relative path fails in your shell, use absolute path:
-
-```powershell
-C:\path\to\Smart-Attendance-System\.sasenv\Scripts\python.exe -m alembic upgrade head
-```
-
-### Linux/macOS
+Linux/macOS:
 
 ```bash
 cd ./main_app
@@ -129,49 +104,27 @@ export PYTHONPATH=.
 ../.sasenv/bin/python -m alembic upgrade head
 ```
 
----
-
-## 6) Start backend services
+### 6. Start backend services
 
 Open separate terminals.
 
-### Terminal A: face_service
+Face service:
 
-Windows:
 ```powershell
 cd .\face_service
 $env:PYTHONPATH='.'
 C:\path\to\Smart-Attendance-System\.sasenv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8001
 ```
 
-Linux/macOS:
-```bash
-cd ./face_service
-export PYTHONPATH=.
-../.sasenv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8001
-```
+Main app:
 
-### Terminal B: main_app
-
-Windows:
 ```powershell
 cd .\main_app
 $env:PYTHONPATH='.'
 C:\path\to\Smart-Attendance-System\.sasenv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Linux/macOS:
-```bash
-cd ./main_app
-export PYTHONPATH=.
-../.sasenv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-
----
-
-## 7) Start frontend
-
-### Terminal C
+### 7. Start frontend
 
 ```bash
 cd frontend
@@ -179,46 +132,27 @@ npm install
 npm run dev
 ```
 
-Ensure `frontend/.env` has:
+Set `frontend/.env`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
----
+## First Startup Flow
 
-## 8) First-time startup behavior (important)
+If no admin exists, login is blocked and frontend redirects to `/setup-admin`.
+Create the first admin there, then continue to the Admin dashboard.
 
-If no Admin exists, login is blocked and UI redirects to:
-
-- `/setup-admin`
-
-You must create the first Admin there.  
-After success, system signs in and opens Admin dashboard.
-
----
-
-## 9) Health checks
+## Health and Metrics
 
 - `GET http://localhost:8000/health`
 - `GET http://localhost:8001/health`
 - `GET http://localhost:8000/metrics`
 - `GET http://localhost:8001/metrics`
 
----
+## Common Issues
 
-## 10) Common issues
-
-- `ADMIN_SETUP_REQUIRED` on login:
-  - Create first admin at `/setup-admin`.
-
-- Migration fails:
-  - Recheck `DATABASE_URL` and DB credentials.
-
-- CORS/browser API errors:
-  - Verify `VITE_API_BASE_URL` points to `main_app`.
-  - Verify `main_app` CORS allows frontend origin.
-
-- Camera worker not running:
-  - Register camera from Admin `Camera Config`.
-  - Start worker using `Start` action.
+- `ADMIN_SETUP_REQUIRED` on login: create first admin at `/setup-admin`
+- migration errors: verify `DATABASE_URL`, DB host, and credentials
+- CORS/API issues: verify `VITE_API_BASE_URL` and backend CORS config
+- camera worker not running: register camera and start worker from Admin Camera page
